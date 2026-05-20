@@ -1,7 +1,7 @@
 # substack-mcp
 
 [![npm](https://img.shields.io/npm/v/@kembec/substack-mcp)](https://www.npmjs.com/package/@kembec/substack-mcp)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)](#)
 
 Read and publish to any Substack publication — single Rust binary, no Node.js runtime.
@@ -137,4 +137,4 @@ cargo build --release
 
 ## License
 
-Apache-2.0
+MIT

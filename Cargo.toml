@@ -3,7 +3,7 @@ name = "substack-mcp"
 version = "0.1.0"
 edition = "2021"
 description = "Unofficial Substack MCP — read and publish to Substack, single binary, no runtime required."
-license = "Apache-2.0"
+license = "MIT"
 
 [[bin]]
 name = "substack-mcp"

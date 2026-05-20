@@ -7,5 +7,5 @@
   "bin": { "substack-mcp": "bin/substack-mcp" },
   "files": ["bin/substack-mcp", "README.md"],
   "repository": { "type": "git", "url": "https://github.com/Kembec/substack-mcp.git" },
-  "license": "Apache-2.0"
+  "license": "MIT"
 }
