@@ -1,6 +1,6 @@
 {
   "name": "@kembec/substack-mcp-linux-x64",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "substack-mcp binary for linux x64",
   "os": [
     "linux"
