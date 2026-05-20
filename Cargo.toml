@@ -1,6 +1,6 @@
 [package]
 name = "substack-mcp"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 description = "Unofficial Substack MCP — read and publish to Substack, single binary, no runtime required."
 license = "MIT"

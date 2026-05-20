@@ -313,45 +313,18 @@ impl SubstackClient {
         self.parse_response(response).await
     }
 
-    pub async fn upload_image(&self, file_path: &str) -> Result<String> {
+    pub async fn upload_image(&self, image_url: &str) -> Result<String> {
         self.prepare_draft_session().await?;
         let pub_base = self.require_pub_base()?;
-
-        let file_bytes = tokio::fs::read(file_path)
-            .await
-            .map_err(|e| anyhow!("cannot read file {file_path}: {e}"))?;
-
-        let file_name = std::path::Path::new(file_path)
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("image.jpg")
-            .to_string();
-
-        let lower = file_name.to_lowercase();
-        let mime = if lower.ends_with(".png") {
-            "image/png"
-        } else if lower.ends_with(".gif") {
-            "image/gif"
-        } else if lower.ends_with(".webp") {
-            "image/webp"
-        } else {
-            "image/jpeg"
-        };
-
-        let part = reqwest::multipart::Part::bytes(file_bytes)
-            .file_name(file_name)
-            .mime_str(mime)?;
-        let form = reqwest::multipart::Form::new().part("image", part);
-
         let url = format!("{pub_base}/image");
+        let payload = json!({ "image": image_url });
         let response = self
             .http
             .post(&url)
             .headers(self.auth_headers()?)
-            .multipart(form)
+            .json(&payload)
             .send()
             .await?;
-
         let json = self.parse_response(response).await?;
         json.get("url")
             .and_then(|v| v.as_str())

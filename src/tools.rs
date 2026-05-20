@@ -5,9 +5,9 @@ use serde_json::{json, Value};
 
 use crate::mcp::ServerState;
 use crate::tools_validation::{
-    self, validate_audience, validate_image_path, validate_image_url, validate_limit,
-    validate_note_body, validate_numeric_id, validate_offset, validate_post_body,
-    validate_post_slug, validate_post_title, validate_pub_url, validate_slug,
+    self, validate_audience, validate_image_url, validate_limit, validate_note_body,
+    validate_numeric_id, validate_offset, validate_post_body, validate_post_slug,
+    validate_post_title, validate_pub_url, validate_slug,
 };
 
 pub fn tools_list() -> Value {
@@ -158,13 +158,13 @@ pub fn tools_list() -> Value {
             },
             {
                 "name": "upload_image",
-                "description": "Upload a local image file to the Substack CDN. Returns the public URL.",
+                "description": "Submit a publicly accessible image URL to Substack. Substack fetches the image and returns its permanent CDN URL.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "file_path": { "type": "string", "description": "Absolute path to a .jpg, .jpeg, .png, .gif, or .webp file" }
+                        "image_url": { "type": "string", "description": "Publicly accessible https:// URL of the image to upload" }
                     },
-                    "required": ["file_path"],
+                    "required": ["image_url"],
                     "additionalProperties": false
                 }
             },
@@ -315,9 +315,9 @@ async fn tool_publish_post(state: &ServerState, args: &Value) -> Result<Value> {
 }
 
 async fn tool_upload_image(state: &ServerState, args: &Value) -> Result<Value> {
-    let file_path = require_str(args, "file_path")?;
-    validate_image_path(file_path)?;
-    let url = state.client.upload_image(file_path).await?;
+    let image_url = require_str(args, "image_url")?;
+    validate_image_url(image_url)?;
+    let url = state.client.upload_image(image_url).await?;
     Ok(serde_json::json!({ "url": url }))
 }
 
