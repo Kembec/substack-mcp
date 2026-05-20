@@ -47,15 +47,8 @@ impl SubstackClient {
                 .and_then(|s| s.strip_suffix(']'))
             {
                 nodes.push(json!({
-                    "type": "captionedImage",
-                    "attrs": {
-                        "src": url,
-                        "fullWidth": false,
-                        "width": 728,
-                        "height": null,
-                        "resizeWidth": 728
-                    },
-                    "content": [{"type": "caption"}]
+                    "type": "paragraph",
+                    "content": [{"type": "image", "attrs": {"src": url}}]
                 }));
             } else {
                 let content: Vec<Value> = if trimmed.is_empty() {
@@ -381,15 +374,8 @@ impl SubstackClient {
             serde_json::from_str(body_str).unwrap_or(json!({"type":"doc","content":[]}));
 
         let image_node = json!({
-            "type": "captionedImage",
-            "attrs": {
-                "src": image_url,
-                "fullWidth": false,
-                "width": 728,
-                "height": null,
-                "resizeWidth": 728
-            },
-            "content": [{"type": "caption"}]
+            "type": "paragraph",
+            "content": [{"type": "image", "attrs": {"src": image_url}}]
         });
 
         if let Some(content) = doc.get_mut("content").and_then(|v| v.as_array_mut()) {
