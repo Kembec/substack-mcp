@@ -279,6 +279,7 @@ impl SubstackClient {
             "draft_title": title,
             "draft_body": draft_body,
             "audience": audience,
+            "editor_v2": true,
             "draft_bylines": [{"id": user_id, "is_guest": false}],
         });
         let url = format!("{pub_base}/drafts");
