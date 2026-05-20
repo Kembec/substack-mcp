@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const { execFileSync } = require('child_process');
+const { chmodSync } = require('fs');
 
 const PLATFORMS = {
   'darwin-arm64': '@kembec/substack-mcp-darwin-arm64',
@@ -26,6 +27,8 @@ try {
   console.error('Reinstall with `npm install @kembec/substack-mcp` to pick the right binary.');
   process.exit(1);
 }
+
+try { chmodSync(binPath, 0o755); } catch {}
 
 try {
   execFileSync(binPath, process.argv.slice(2), { stdio: 'inherit' });
