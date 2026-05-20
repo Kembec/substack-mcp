@@ -1,11 +1,23 @@
 {
   "name": "@kembec/substack-mcp-darwin-x64",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "substack-mcp binary for darwin x64",
-  "os": ["darwin"],
-  "cpu": ["x64"],
-  "bin": { "substack-mcp": "bin/substack-mcp" },
-  "files": ["bin/substack-mcp", "README.md"],
-  "repository": { "type": "git", "url": "https://github.com/Kembec/substack-mcp.git" },
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "bin": {
+    "substack-mcp": "bin/substack-mcp"
+  },
+  "files": [
+    "bin/substack-mcp",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kembec/substack-mcp.git"
+  },
   "license": "MIT"
 }
