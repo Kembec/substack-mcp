@@ -1,0 +1,11 @@
+{
+  "name": "@kembec/substack-mcp-win32-x64",
+  "version": "0.1.0",
+  "description": "substack-mcp binary for win32 x64",
+  "os": ["win32"],
+  "cpu": ["x64"],
+  "bin": { "substack-mcp": "bin/substack-mcp" },
+  "files": ["bin/substack-mcp", "README.md"],
+  "repository": { "type": "git", "url": "https://github.com/Kembec/substack-mcp.git" },
+  "license": "Apache-2.0"
+}

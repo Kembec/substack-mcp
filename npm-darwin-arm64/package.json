@@ -1,0 +1,11 @@
+{
+  "name": "@kembec/substack-mcp-darwin-arm64",
+  "version": "0.1.0",
+  "description": "substack-mcp binary for darwin arm64",
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "bin": { "substack-mcp": "bin/substack-mcp" },
+  "files": ["bin/substack-mcp", "README.md"],
+  "repository": { "type": "git", "url": "https://github.com/Kembec/substack-mcp.git" },
+  "license": "Apache-2.0"
+}
