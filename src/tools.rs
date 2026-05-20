@@ -5,9 +5,9 @@ use serde_json::{json, Value};
 
 use crate::mcp::ServerState;
 use crate::tools_validation::{
-    self, validate_audience, validate_limit, validate_note_body, validate_numeric_id,
-    validate_offset, validate_post_body, validate_post_slug, validate_post_title, validate_pub_url,
-    validate_slug,
+    self, validate_audience, validate_image_path, validate_image_url, validate_limit,
+    validate_note_body, validate_numeric_id, validate_offset, validate_post_body,
+    validate_post_slug, validate_post_title, validate_pub_url, validate_slug,
 };
 
 pub fn tools_list() -> Value {
@@ -155,6 +155,31 @@ pub fn tools_list() -> Value {
                     "required": ["draft_id"],
                     "additionalProperties": false
                 }
+            },
+            {
+                "name": "upload_image",
+                "description": "Upload a local image file to the Substack CDN. Returns the public URL.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": { "type": "string", "description": "Absolute path to a .jpg, .jpeg, .png, .gif, or .webp file" }
+                    },
+                    "required": ["file_path"],
+                    "additionalProperties": false
+                }
+            },
+            {
+                "name": "set_cover_image",
+                "description": "Set the cover image of an existing draft using a URL (e.g. returned by upload_image).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "draft_id": { "type": "string" },
+                        "image_url": { "type": "string", "description": "https:// URL of the image" }
+                    },
+                    "required": ["draft_id", "image_url"],
+                    "additionalProperties": false
+                }
             }
         ]
     })
@@ -194,6 +219,8 @@ pub async fn call(state: Arc<ServerState>, name: &str, arguments: Value) -> Resu
         "create_draft" => tool_create_draft(&state, &arguments).await,
         "update_draft" => tool_update_draft(&state, &arguments).await,
         "publish_post" => tool_publish_post(&state, &arguments).await,
+        "upload_image" => tool_upload_image(&state, &arguments).await,
+        "set_cover_image" => tool_set_cover_image(&state, &arguments).await,
         other => Err(anyhow!("unknown tool: {other}")),
     }
 }
@@ -287,15 +314,30 @@ async fn tool_publish_post(state: &ServerState, args: &Value) -> Result<Value> {
     state.client.publish_draft(draft_id, send_email).await
 }
 
+async fn tool_upload_image(state: &ServerState, args: &Value) -> Result<Value> {
+    let file_path = require_str(args, "file_path")?;
+    validate_image_path(file_path)?;
+    let url = state.client.upload_image(file_path).await?;
+    Ok(serde_json::json!({ "url": url }))
+}
+
+async fn tool_set_cover_image(state: &ServerState, args: &Value) -> Result<Value> {
+    let draft_id = require_str(args, "draft_id")?;
+    validate_numeric_id(draft_id, "draft_id")?;
+    let image_url = require_str(args, "image_url")?;
+    validate_image_url(image_url)?;
+    state.client.set_draft_cover_image(draft_id, image_url).await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn tools_list_count_is_11() {
+    fn tools_list_count_is_13() {
         let list = tools_list();
         let tools = list.get("tools").and_then(|v| v.as_array()).unwrap();
-        assert_eq!(tools.len(), 11);
+        assert_eq!(tools.len(), 13);
     }
 
     #[test]

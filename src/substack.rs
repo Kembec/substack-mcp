@@ -312,4 +312,65 @@ impl SubstackClient {
             .await?;
         self.parse_response(response).await
     }
+
+    pub async fn upload_image(&self, file_path: &str) -> Result<String> {
+        self.prepare_draft_session().await?;
+        let pub_base = self.require_pub_base()?;
+
+        let file_bytes = tokio::fs::read(file_path)
+            .await
+            .map_err(|e| anyhow!("cannot read file {file_path}: {e}"))?;
+
+        let file_name = std::path::Path::new(file_path)
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("image.jpg")
+            .to_string();
+
+        let lower = file_name.to_lowercase();
+        let mime = if lower.ends_with(".png") {
+            "image/png"
+        } else if lower.ends_with(".gif") {
+            "image/gif"
+        } else if lower.ends_with(".webp") {
+            "image/webp"
+        } else {
+            "image/jpeg"
+        };
+
+        let part = reqwest::multipart::Part::bytes(file_bytes)
+            .file_name(file_name)
+            .mime_str(mime)?;
+        let form = reqwest::multipart::Form::new().part("image", part);
+
+        let url = format!("{pub_base}/image");
+        let response = self
+            .http
+            .post(&url)
+            .headers(self.auth_headers()?)
+            .multipart(form)
+            .send()
+            .await?;
+
+        let json = self.parse_response(response).await?;
+        json.get("url")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .ok_or_else(|| anyhow!("upload_image: response missing 'url' field"))
+    }
+
+    pub async fn set_draft_cover_image(&self, draft_id: &str, image_url: &str) -> Result<Value> {
+        self.prepare_draft_session().await?;
+        let pub_base = self.require_pub_base()?;
+        let url = format!("{pub_base}/drafts/{draft_id}");
+        let payload = json!({ "cover_image": image_url });
+        let response = self
+            .http
+            .put(&url)
+            .headers(self.auth_headers()?)
+            .json(&payload)
+            .send()
+            .await?;
+        self.parse_response(response).await
+    }
 }

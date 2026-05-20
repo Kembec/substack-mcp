@@ -107,6 +107,34 @@ pub fn validate_audience(s: &str) -> Result<()> {
     }
 }
 
+pub fn validate_image_path(path: &str) -> Result<()> {
+    if path.is_empty() || path.len() > 4096 {
+        return Err(anyhow!("file_path must be 1-4096 characters"));
+    }
+    let lower = path.to_lowercase();
+    if !lower.ends_with(".jpg")
+        && !lower.ends_with(".jpeg")
+        && !lower.ends_with(".png")
+        && !lower.ends_with(".gif")
+        && !lower.ends_with(".webp")
+    {
+        return Err(anyhow!(
+            "file_path must be a .jpg, .jpeg, .png, .gif, or .webp image"
+        ));
+    }
+    Ok(())
+}
+
+pub fn validate_image_url(url: &str) -> Result<()> {
+    if url.is_empty() || url.len() > 4096 {
+        return Err(anyhow!("image_url must be 1-4096 characters"));
+    }
+    if !url.starts_with("https://") {
+        return Err(anyhow!("image_url must start with https://"));
+    }
+    Ok(())
+}
+
 pub fn require_str<'a>(args: &'a Value, key: &str) -> Result<&'a str> {
     args.get(key)
         .and_then(|v| v.as_str())
