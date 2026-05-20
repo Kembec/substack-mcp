@@ -169,6 +169,19 @@ pub fn tools_list() -> Value {
                 }
             },
             {
+                "name": "add_image_to_draft",
+                "description": "Append an inline image to the body of an existing draft.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "draft_id": { "type": "string" },
+                        "image_url": { "type": "string", "description": "https:// URL of the image (use Substack CDN URL from upload_image)" }
+                    },
+                    "required": ["draft_id", "image_url"],
+                    "additionalProperties": false
+                }
+            },
+            {
                 "name": "set_cover_image",
                 "description": "Set the cover image of an existing draft using a URL (e.g. returned by upload_image).",
                 "inputSchema": {
@@ -220,6 +233,7 @@ pub async fn call(state: Arc<ServerState>, name: &str, arguments: Value) -> Resu
         "update_draft" => tool_update_draft(&state, &arguments).await,
         "publish_post" => tool_publish_post(&state, &arguments).await,
         "upload_image" => tool_upload_image(&state, &arguments).await,
+        "add_image_to_draft" => tool_add_image_to_draft(&state, &arguments).await,
         "set_cover_image" => tool_set_cover_image(&state, &arguments).await,
         other => Err(anyhow!("unknown tool: {other}")),
     }
@@ -321,6 +335,14 @@ async fn tool_upload_image(state: &ServerState, args: &Value) -> Result<Value> {
     Ok(serde_json::json!({ "url": url }))
 }
 
+async fn tool_add_image_to_draft(state: &ServerState, args: &Value) -> Result<Value> {
+    let draft_id = require_str(args, "draft_id")?;
+    validate_numeric_id(draft_id, "draft_id")?;
+    let image_url = require_str(args, "image_url")?;
+    validate_image_url(image_url)?;
+    state.client.add_image_to_draft(draft_id, image_url).await
+}
+
 async fn tool_set_cover_image(state: &ServerState, args: &Value) -> Result<Value> {
     let draft_id = require_str(args, "draft_id")?;
     validate_numeric_id(draft_id, "draft_id")?;
@@ -334,10 +356,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn tools_list_count_is_13() {
+    fn tools_list_count_is_14() {
         let list = tools_list();
         let tools = list.get("tools").and_then(|v| v.as_array()).unwrap();
-        assert_eq!(tools.len(), 13);
+        assert_eq!(tools.len(), 14);
     }
 
     #[test]

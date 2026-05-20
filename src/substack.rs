@@ -38,13 +38,40 @@ impl SubstackClient {
     }
 
     fn text_to_prosemirror(text: &str) -> Value {
-        json!({
-            "type": "doc",
-            "content": [{
-                "type": "paragraph",
-                "content": [{"type": "text", "text": text}]
-            }]
-        })
+        let mut nodes: Vec<Value> = Vec::new();
+
+        for chunk in text.split('\n') {
+            let trimmed = chunk.trim();
+            if let Some(url) = trimmed
+                .strip_prefix("[IMAGE:")
+                .and_then(|s| s.strip_suffix(']'))
+            {
+                nodes.push(json!({
+                    "type": "captionedImage",
+                    "attrs": {
+                        "src": url,
+                        "fullWidth": false,
+                        "width": 728,
+                        "height": null,
+                        "resizeWidth": 728
+                    },
+                    "content": [{"type": "caption"}]
+                }));
+            } else {
+                let content: Vec<Value> = if trimmed.is_empty() {
+                    vec![]
+                } else {
+                    vec![json!({"type": "text", "text": chunk})]
+                };
+                nodes.push(json!({"type": "paragraph", "content": content}));
+            }
+        }
+
+        if nodes.is_empty() {
+            nodes.push(json!({"type": "paragraph", "content": []}));
+        }
+
+        json!({"type": "doc", "content": nodes})
     }
 
     fn require_sid(&self) -> Result<&str> {
@@ -330,6 +357,55 @@ impl SubstackClient {
             .and_then(|v| v.as_str())
             .map(|s| s.to_string())
             .ok_or_else(|| anyhow!("upload_image: response missing 'url' field"))
+    }
+
+    pub async fn add_image_to_draft(&self, draft_id: &str, image_url: &str) -> Result<Value> {
+        self.prepare_draft_session().await?;
+        let pub_base = self.require_pub_base()?;
+
+        // Fetch current body
+        let get_url = format!("{pub_base}/drafts/{draft_id}");
+        let resp = self
+            .http
+            .get(&get_url)
+            .headers(self.auth_headers()?)
+            .send()
+            .await?;
+        let draft = self.parse_response(resp).await?;
+        let body_str = draft
+            .get("draft_body")
+            .and_then(|v| v.as_str())
+            .unwrap_or("{\"type\":\"doc\",\"content\":[]}");
+        let mut doc: Value =
+            serde_json::from_str(body_str).unwrap_or(json!({"type":"doc","content":[]}));
+
+        let image_node = json!({
+            "type": "captionedImage",
+            "attrs": {
+                "src": image_url,
+                "fullWidth": false,
+                "width": 728,
+                "height": null,
+                "resizeWidth": 728
+            },
+            "content": [{"type": "caption"}]
+        });
+
+        if let Some(content) = doc.get_mut("content").and_then(|v| v.as_array_mut()) {
+            content.push(image_node);
+        }
+
+        let new_body = serde_json::to_string(&doc)?;
+        let payload = json!({ "draft_body": new_body });
+        let put_url = format!("{pub_base}/drafts/{draft_id}");
+        let response = self
+            .http
+            .put(&put_url)
+            .headers(self.auth_headers()?)
+            .json(&payload)
+            .send()
+            .await?;
+        self.parse_response(response).await
     }
 
     pub async fn set_draft_cover_image(&self, draft_id: &str, image_url: &str) -> Result<Value> {

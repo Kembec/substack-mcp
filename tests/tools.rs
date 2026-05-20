@@ -97,7 +97,7 @@ fn test_tools_list() {
     s.send(&json!({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}));
     let resp = s.recv();
     let tools = resp["result"]["tools"].as_array().unwrap();
-    assert_eq!(tools.len(), 13);
+    assert_eq!(tools.len(), 14);
     for tool in tools {
         assert!(tool.get("name").is_some());
         assert!(tool.get("inputSchema").is_some());
