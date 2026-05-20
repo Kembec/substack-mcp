@@ -25,6 +25,10 @@ jobs:
             target: x86_64-unknown-linux-gnu
             platform_dir: npm-linux-x64
             bin: substack-mcp
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            platform_dir: npm-linux-arm64
+            bin: substack-mcp
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             platform_dir: npm-win32-x64
@@ -78,21 +82,21 @@ jobs:
           path: artifacts
       - name: Restage artifacts into platform dirs
         run: |
-          for d in npm-darwin-arm64 npm-darwin-x64 npm-linux-x64 npm-win32-x64; do
+          for d in npm-darwin-arm64 npm-darwin-x64 npm-linux-x64 npm-linux-arm64 npm-win32-x64; do
             mkdir -p "$d/bin"
             cp -r "artifacts/$d/bin/." "$d/bin/"
           done
       - name: Add README to packages
         run: |
           cp README.md npm/README.md
-          for d in npm-darwin-arm64 npm-darwin-x64 npm-linux-x64 npm-win32-x64; do
+          for d in npm-darwin-arm64 npm-darwin-x64 npm-linux-x64 npm-linux-arm64 npm-win32-x64; do
             cp README.md "$d/README.md"
           done
       - name: Publish platform packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          for d in npm-darwin-arm64 npm-darwin-x64 npm-linux-x64 npm-win32-x64; do
+          for d in npm-darwin-arm64 npm-darwin-x64 npm-linux-x64 npm-linux-arm64 npm-win32-x64; do
             (cd "$d" && npm publish --access public)
           done
       - name: Publish main package
