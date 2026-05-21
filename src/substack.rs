@@ -37,11 +37,66 @@ impl SubstackClient {
         Ok(headers)
     }
 
+    fn parse_inline_content(text: &str) -> Vec<Value> {
+        let chars: Vec<char> = text.chars().collect();
+        let n = chars.len();
+        let mut nodes: Vec<Value> = Vec::new();
+        let mut buf = String::new();
+        let mut i = 0;
+
+        while i < n {
+            if i + 1 < n && chars[i] == '*' && chars[i + 1] == '*' {
+                if !buf.is_empty() {
+                    nodes.push(json!({"type": "text", "text": buf.clone()}));
+                    buf.clear();
+                }
+                i += 2;
+                let mut bold = String::new();
+                while i < n && !(i + 1 < n && chars[i] == '*' && chars[i + 1] == '*') {
+                    bold.push(chars[i]);
+                    i += 1;
+                }
+                if !bold.is_empty() {
+                    nodes.push(json!({"type": "text", "text": bold, "marks": [{"type": "bold"}]}));
+                }
+                if i + 1 < n && chars[i] == '*' && chars[i + 1] == '*' {
+                    i += 2;
+                }
+            } else if chars[i] == '*' && (i + 1 >= n || chars[i + 1] != '*') {
+                if !buf.is_empty() {
+                    nodes.push(json!({"type": "text", "text": buf.clone()}));
+                    buf.clear();
+                }
+                i += 1;
+                let mut italic = String::new();
+                while i < n && chars[i] != '*' {
+                    italic.push(chars[i]);
+                    i += 1;
+                }
+                if !italic.is_empty() {
+                    nodes.push(json!({"type": "text", "text": italic, "marks": [{"type": "italic"}]}));
+                }
+                if i < n && chars[i] == '*' {
+                    i += 1;
+                }
+            } else {
+                buf.push(chars[i]);
+                i += 1;
+            }
+        }
+
+        if !buf.is_empty() {
+            nodes.push(json!({"type": "text", "text": buf}));
+        }
+
+        nodes
+    }
+
     fn text_to_prosemirror(text: &str) -> Value {
         let mut nodes: Vec<Value> = Vec::new();
 
-        for chunk in text.split('\n') {
-            let trimmed = chunk.trim();
+        for line in text.split('\n') {
+            let trimmed = line.trim();
             if let Some(url) = trimmed
                 .strip_prefix("[IMAGE:")
                 .and_then(|s| s.strip_suffix(']'))
@@ -50,13 +105,24 @@ impl SubstackClient {
                     "type": "paragraph",
                     "content": [{"type": "image", "attrs": {"src": url}}]
                 }));
+            } else if let Some(t) = trimmed.strip_prefix("### ") {
+                nodes.push(json!({"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": t}]}));
+            } else if let Some(t) = trimmed.strip_prefix("## ") {
+                nodes.push(json!({"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": t}]}));
+            } else if let Some(t) = trimmed.strip_prefix("# ") {
+                nodes.push(json!({"type": "heading", "attrs": {"level": 1}, "content": [{"type": "text", "text": t}]}));
+            } else if trimmed == "---" || trimmed == "___" {
+                nodes.push(json!({"type": "horizontal_rule"}));
+            } else if trimmed.is_empty() {
+                nodes.push(json!({"type": "paragraph", "content": []}));
             } else {
-                let content: Vec<Value> = if trimmed.is_empty() {
+                let content = Self::parse_inline_content(line);
+                let content_val: Vec<Value> = if content.is_empty() {
                     vec![]
                 } else {
-                    vec![json!({"type": "text", "text": chunk})]
+                    content
                 };
-                nodes.push(json!({"type": "paragraph", "content": content}));
+                nodes.push(json!({"type": "paragraph", "content": content_val}));
             }
         }
 
