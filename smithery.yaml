@@ -1,0 +1,22 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      SUBSTACK_SID:
+        type: string
+        description: "Session cookie from substack.com: DevTools → Application → Cookies → connect.sid"
+      SUBSTACK_PUBLICATION_URL:
+        type: string
+        description: "Your publication URL, e.g. https://yourname.substack.com (required for draft/publish tools)"
+    required:
+      - SUBSTACK_SID
+  commandFunction: |
+    (config) => ({
+      command: "npx",
+      args: ["-y", "@kembec/substack-mcp"],
+      env: {
+        SUBSTACK_SID: config.SUBSTACK_SID,
+        ...(config.SUBSTACK_PUBLICATION_URL ? { SUBSTACK_PUBLICATION_URL: config.SUBSTACK_PUBLICATION_URL } : {})
+      }
+    })
