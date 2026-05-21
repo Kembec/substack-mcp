@@ -87,7 +87,10 @@ fn test_initialize() {
     let resp = s.recv();
     assert_eq!(resp["jsonrpc"], "2.0");
     assert_eq!(resp["id"], 1);
-    assert_eq!(resp["result"]["serverInfo"]["name"], "unofficial-substack-mcp");
+    assert_eq!(
+        resp["result"]["serverInfo"]["name"],
+        "unofficial-substack-mcp"
+    );
     assert!(resp["result"]["capabilities"]["tools"].is_object());
 }
 

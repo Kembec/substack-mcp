@@ -57,9 +57,7 @@ pub fn load() -> Credentials {
         .map(|s| s.trim().trim_end_matches('/').to_string())
         .filter(|s| !s.is_empty());
 
-    let pub_base_url = publication_url
-        .as_ref()
-        .map(|url| format!("{url}/api/v1"));
+    let pub_base_url = publication_url.as_ref().map(|url| format!("{url}/api/v1"));
 
     let publication_subdomain = publication_url.as_ref().and_then(|url| {
         let host = url

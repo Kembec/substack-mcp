@@ -1,6 +1,6 @@
 {
   "name": "@kembec/substack-mcp-darwin-x64",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "substack-mcp binary for darwin x64",
   "os": [
     "darwin"

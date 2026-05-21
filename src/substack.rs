@@ -130,7 +130,9 @@ impl SubstackClient {
     async fn parse_response(&self, response: reqwest::Response) -> Result<Value> {
         let status = response.status();
         let body = response.text().await?;
-        if status.as_u16() == 401 || body.contains("Please sign in") || body.contains("Not authorized")
+        if status.as_u16() == 401
+            || body.contains("Please sign in")
+            || body.contains("Not authorized")
         {
             return Err(anyhow!(
                 "Substack authentication failed (HTTP {}). Refresh SUBSTACK_SID from browser DevTools → Application → Cookies → substack.com → connect.sid",

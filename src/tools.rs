@@ -203,9 +203,7 @@ pub fn require_str<'a>(args: &'a Value, key: &str) -> Result<&'a str> {
 }
 
 pub fn optional_u64(args: &Value, key: &str, default: u64) -> u64 {
-    args.get(key)
-        .and_then(|v| v.as_u64())
-        .unwrap_or(default)
+    args.get(key).and_then(|v| v.as_u64()).unwrap_or(default)
 }
 
 pub fn optional_str<'a>(args: &'a Value, key: &str, default: &'a str) -> &'a str {
@@ -348,7 +346,10 @@ async fn tool_set_cover_image(state: &ServerState, args: &Value) -> Result<Value
     validate_numeric_id(draft_id, "draft_id")?;
     let image_url = require_str(args, "image_url")?;
     validate_image_url(image_url)?;
-    state.client.set_draft_cover_image(draft_id, image_url).await
+    state
+        .client
+        .set_draft_cover_image(draft_id, image_url)
+        .await
 }
 
 #[cfg(test)]
